@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>N.Y.C. Mayoral Primary</title>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://unpkg.com/@mapbox/mapbox-gl-geocoder@4.7.4/dist/mapbox-gl-geocoder.css" rel="stylesheet">
+  <script src="https://unpkg.com/@mapbox/mapbox-gl-geocoder@4.7.4/dist/mapbox-gl-geocoder.min.js"></script>
+  <script src="config.js"></script> <!-- Copy config.example.js to config.js and add your Mapbox token -->
+
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      padding: 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #fff;
+      overflow-x: hidden;
+    }
+    
+
+    
+    /* Main content */
+    .main-content {
+      position: relative;
+      height: 100vh;
+    }
+    
+    /* Info panel */
+    .info-panel {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      width: 450px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      z-index: 500;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+    
+    .info-panel h1 {
+      font-size: 40px;
+      font-weight: bold;
+      line-height: 1.2;
+      margin: 0 0 8px 0;
+      color: #000;
+    }
+    
+    .byline {
+      color: #666;
+      font-size: 20px;
+      margin: 0 0 4px 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    .updated {
+      color: #666;
+      font-size: 17px;
+      margin: 0 0 16px 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    .description {
+      font-size: 20px;
+      line-height: 1.4;
+      color: #333;
+      margin: 0 0 16px 0;
+    }
+    
+    .search-container {
+      margin: 0 0 20px 0;
+      position: relative;
+      z-index: 100;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 20px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    /* Geocoder styling to match our design */
+    .mapboxgl-ctrl-geocoder {
+      width: 100% !important;
+      max-width: none !important;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+      box-shadow: none !important;
+      position: relative !important;
+      background: transparent !important;
+      margin: 0 !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder input {
+      font-size: 20px !important;
+      padding: 8px 40px 8px 12px !important;
+      border: 1px solid #ccc !important;
+      border-radius: 4px !important;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+      width: 100% !important;
+      background: white !important;
+      box-sizing: border-box !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--icon {
+      position: absolute !important;
+      right: 8px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      width: 24px !important;
+      height: 24px !important;
+      fill: #666 !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder .mapboxgl-ctrl-geocoder--button {
+      position: absolute !important;
+      right: 8px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      background: none !important;
+      border: none !important;
+      cursor: pointer !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder input:focus {
+      border-color: #007cbf !important;
+      outline: none !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder .suggestions {
+      position: absolute !important;
+      top: 100% !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 1000 !important;
+      background: white !important;
+      border: 1px solid #ccc !important;
+      border-top: none !important;
+      border-radius: 0 0 4px 4px !important;
+      max-height: 200px !important;
+      overflow-y: auto !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder .suggestion {
+      padding: 8px 12px !important;
+      border-bottom: 1px solid #eee !important;
+      cursor: pointer !important;
+      font-size: 16px !important;
+    }
+    
+    .mapboxgl-ctrl-geocoder .suggestion:hover,
+    .mapboxgl-ctrl-geocoder .suggestion.active {
+      background-color: #f0f0f0 !important;
+    }
+    
+    .candidates-section h3 {
+      font-size: 23px;
+      font-weight: bold;
+      margin: 0 0 12px 0;
+      color: #000;
+    }
+    
+    .candidate-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+    
+    .candidate-photo {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-right: 12px;
+      background: #ddd;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    .candidate-photo.mamdani {
+      background-image: url('images/zohran-momdani-1-abc-gmh-250625_1750885971136_hpMain.avif');
+    }
+    
+    .candidate-photo.cuomo {
+      background-image: url('images/cuomo.jpeg');
+    }
+    
+    .candidate-photo.lander {
+      background-image: url('images/Comptroller-Brad-Lander-scaled.jpg');
+    }
+    
+    .candidate-info {
+      flex: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .candidate-name {
+      font-weight: 500;
+      color: #000;
+      flex: 1;
+    }
+    
+    .candidate-stats {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .candidate-votes {
+      color: #666;
+      font-size: 19px;
+    }
+    
+    .candidate-pct {
+      font-weight: bold;
+      color: #000;
+      font-size: 20px;
+    }
+    
+    .source {
+      font-size: 16px;
+      color: #666;
+      margin-top: 16px;
+      line-height: 1.3;
+    }
+    
+    /* Map */
+    #map {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Legend */
+    .legend {
+      position: absolute;
+      bottom: 20px;
+      left: 40px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      font-size: 17px;
+      z-index: 500;
+    }
+    
+    .legend h4 {
+      margin: 0 0 8px 0;
+      font-size: 19px;
+      font-weight: bold;
+      color: #000;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      margin-right: 8px;
+      border-radius: 2px;
+    }
+    
+    .legend-label {
+      font-size: 17px;
+      color: #333;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .info-panel {
+        width: calc(100vw - 40px);
+        max-width: 450px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Full Screen Map -->
+    <div id="map"></div>
+    
+    <!-- Info Panel -->
+    <div class="info-panel">
+      <h1>How Every Block Voted in the N.Y.C. Mayoral Primary</h1>
+      <p class="byline">By Chi Vo</p>
+      <p class="updated">Updated July 7, 2025</p>
+      
+      <p class="description">Certified first-round results of the Democratic primary’s ranked-choice vote are shown on this map. Mr. Mamdani was named the winner following the release of the final round tallies on July 1.</p>
+      
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="Search by address, neighborhood or ZIP code" id="geocoder">
+      </div>
+      
+      <div class="candidates-section">
+        <h3>Top candidates</h3>
+        <div id="candidates-list"></div>
+      </div>
+      
+      <p class="source">Sources: N.Y.C. Board of Elections; U.S. Census; Dept. of City Planning; Associated Press via the New York Time</p>
+    </div>
+    
+    <!-- Legend -->
+    <div class="legend">
+      <h4>Leader Margin</h4>
+      <!-- Mamdani gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#f4a582; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#d95f02; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#b2441b; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Mamdani</div>
+      </div>
+      <!-- Cuomo gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#a6dba0; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#1b9e77; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#166b5a; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Cuomo</div>
+      </div>
+      <!-- Lander gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#c2a5cf; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#7570b3; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#54508a; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Lander</div>
+      </div>
+      <!-- Insufficient data -->
+      <div class="legend-item">
+        <div class="legend-color" style="background:#cccccc"></div>
+        <div class="legend-label">Insufficient data</div>
+      </div>
+      <div style="font-size: 13px; color: #666; margin-top: 4px;">
+        Light = narrow win, Dark = strong win
+      </div>
+    </div>
+  </div>
+
+  <script>
+    mapboxgl.accessToken = window.MAP_CONFIG.MAPBOX_ACCESS_TOKEN;
+    const map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [-73.94, 40.74],
+      zoom: 12
+    });
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    
+    // Add geocoder if available - integrate with the search input
+    console.log('Checking for MapboxGeocoder...', typeof MapboxGeocoder);
+    
+    if (typeof MapboxGeocoder !== 'undefined') {
+      console.log('MapboxGeocoder found, initializing...');
+      try {
+        const geocoder = new MapboxGeocoder({ 
+          accessToken: mapboxgl.accessToken, 
+          mapboxgl: mapboxgl, 
+          placeholder: 'Search by address, neighborhood or ZIP code',
+          bbox: [-74.25, 40.47, -73.70, 40.92], // NYC bounds
+          countries: 'us'
+        });
+        
+        // Replace the input with the geocoder
+        const geocoderInput = document.getElementById('geocoder');
+        console.log('Found geocoder input:', geocoderInput);
+        
+        if (geocoderInput) {
+          const geocoderElement = geocoder.onAdd(map);
+          console.log('Created geocoder element:', geocoderElement);
+          
+          // Style the geocoder to match our design
+          geocoderElement.style.width = '100%';
+          geocoderElement.style.maxWidth = 'none';
+          
+          geocoderInput.parentNode.replaceChild(geocoderElement, geocoderInput);
+          console.log('Geocoder successfully integrated');
+          
+          // Add event listeners for geocoder results
+          geocoder.on('result', (e) => {
+            console.log('Geocoder result:', e.result);
+          });
+          
+          geocoder.on('error', (e) => {
+            console.error('Geocoder error:', e.error);
+          });
+        } else {
+          console.error('Could not find geocoder input element');
+        }
+        
+      } catch (error) {
+        console.error('Error initializing geocoder:', error);
+      }
+      
+    } else {
+      console.warn('MapboxGeocoder not available - search functionality disabled');
+      console.log('Available globals:', Object.keys(window).filter(k => k.toLowerCase().includes('mapbox')));
+    }
+
+    // colors
+    const winnerColor = ['match', ['get','winner_key'],
+      'mamdani-z', '#d95f02',
+      'cuomo-a',   '#1b9e77',
+      'lander-b',  '#7570b3',
+      /* other */  '#cccccc'
+    ];
+
+    // Helper functions
+    function adToCountyFips(ad, fullDistrictId) {
+      // Special/Mixed districts: 00-22 (these may not have election results)
+      if (ad >= 0 && ad <= 22) return null; // Skip these for now
+      // Queens: 23–40
+      if (ad >= 23 && ad <= 40) return "081";
+      // Brooklyn (Kings): 41–60  
+      if (ad >= 41 && ad <= 60) return "047";
+      
+      // District 61 is split between Staten Island and Manhattan
+      if (ad === 61) {
+        const districtNum = parseInt(fullDistrictId, 10);
+        if (districtNum >= 61001 && districtNum <= 61048) return "085"; // Staten Island
+        if (districtNum >= 61060) return "061"; // Manhattan
+        return "085"; // Default to Staten Island for unknown 61xxx
+      }
+      
+      // Staten Island (Richmond): 62–63
+      if (ad >= 62 && ad <= 63) return "085";
+      
+      // District 64 is split between Staten Island and Brooklyn
+      if (ad === 64) {
+        const districtNum = parseInt(fullDistrictId, 10);
+        if (districtNum >= 64001 && districtNum <= 64051) return "085"; // Staten Island
+        if (districtNum >= 64075) return "047"; // Brooklyn
+        return "085"; // Default to Staten Island for unknown 64xxx
+      }
+      
+      // Manhattan (New York County): 65–76
+      if (ad >= 65 && ad <= 76) return "061";
+      // Bronx: 77–87
+      if (ad >= 77 && ad <= 87) return "005";
+      return null; // unknown
+    }
+
+    function ensureGeoId(props) {
+      if (props.geo_id) {
+        const ed = String(props.elect_dist || "").padStart(5, "0");
+        const ad = parseInt(ed.slice(0, 2), 10);
+        const fips = adToCountyFips(ad, ed);
+        if (!fips) return props.geo_id;
+        const correctGid = `36${fips}-${ed}`;
+        if (props.geo_id !== correctGid) {
+          console.log(`Correcting geo_id: ${props.geo_id} -> ${correctGid} (AD ${ad}, District ${ed})`);
+          props.geo_id = correctGid;
+        }
+        return props.geo_id;
+      }
+      const ed = String(props.elect_dist || "").padStart(5, "0");  // e.g. "23001"
+      const ad = parseInt(ed.slice(0, 2), 10);
+      const fips = adToCountyFips(ad, ed);
+      if (!fips) return null;
+      const gid = `36${fips}-${ed}`;
+      props.geo_id = gid; // persist for popup/debug
+      return gid;
+    }
+
+    map.on('load', async () => {
+      try {
+        // 1) load shapes (local GeoJSON) and results
+        console.log('Loading data...');
+        const shapes = await fetch('precincts_ready.geojson').then(r=>r.json());
+        const results = await fetch('results.json').then(r=>r.json());
+        console.log('Data loaded:', shapes.features.length, 'shapes,', results.precincts.length, 'results');
+
+        // 2) index results by geo_id
+        const byGeo = new Map(results.precincts.map(p => [p.geo_id, p]));
+        console.log('Results indexed by geo_id');
+
+        // 3) attach results to each feature and compute winner/pct
+
+        // 3) attach results to each feature and compute winner/pct
+        let matchedCount = 0;
+        let unmatchedCount = 0;
+        shapes.features.forEach(f => {
+          const originalGid = f.properties.geo_id;
+          const gid = ensureGeoId(f.properties);
+          if (!gid) {
+            unmatchedCount++;
+            return; // no borough match -> leave gray
+          }
+          const row = byGeo.get(gid);
+          if (!row) {
+            unmatchedCount++;
+            if (originalGid !== gid) {
+              console.log(`GeoID corrected: ${originalGid} -> ${gid}, but no results found`);
+            }
+            // Set default values for precincts with no data
+            f.properties.winner_key = null;
+            f.properties.winner_pct = 0;
+            f.properties.votes_total = 0;
+            return; // no results for this precinct
+          }
+          matchedCount++;
+    const res = row.results;
+
+    let maxVotes = -1, winnerKey = null, total = 0;
+    for (const [k, v] of Object.entries(res)) {
+        if (k.startsWith('total')) continue;
+        total += (v || 0);
+        if (v > maxVotes) { maxVotes = v; winnerKey = k; }
+    }
+    f.properties.winner_key = winnerKey;
+    f.properties.winner_pct = total ? (maxVotes / total) * 100 : 0;
+    f.properties.votes_total = total;
+    });
+
+
+      // 4) add as a geojson source/layers
+      map.addSource('precincts', { type: 'geojson', data: shapes });
+      map.addLayer({
+        id: 'precinct-fills',
+        type: 'fill',
+        source: 'precincts',
+        paint: {
+          'fill-color': [
+            'case',
+            ['any',
+              ['==', ['get', 'votes_total'], null],
+              ['==', ['get', 'votes_total'], 0],
+              ['<', ['get', 'votes_total'], 10]
+            ], '#cccccc', // Light grey for no data or less than 10 votes
+            // Mamdani wins
+            ['==', ['get', 'winner_key'], 'mamdani-z'], [
+              'interpolate', ['linear'], ['get', 'winner_pct'],
+              35, '#f4a582',  // Light orange for narrow wins
+              50, '#d95f02',  // Medium orange
+              70, '#b2441b'   // Dark orange for strong wins
+            ],
+            // Cuomo wins  
+            ['==', ['get', 'winner_key'], 'cuomo-a'], [
+              'interpolate', ['linear'], ['get', 'winner_pct'],
+              35, '#a6dba0',  // Light teal for narrow wins
+              50, '#1b9e77',  // Medium teal
+              70, '#166b5a'   // Dark teal for strong wins
+            ],
+            // Lander wins
+            ['==', ['get', 'winner_key'], 'lander-b'], [
+              'interpolate', ['linear'], ['get', 'winner_pct'],
+              35, '#c2a5cf',  // Light purple for narrow wins
+              50, '#7570b3',  // Medium purple
+              70, '#54508a'   // Dark purple for strong wins
+            ],
+            '#cccccc' // Default fallback
+          ],
+          'fill-opacity': [
+            'case',
+            ['any',
+              ['==', ['get', 'votes_total'], null],
+              ['==', ['get', 'votes_total'], 0],
+              ['<', ['get', 'votes_total'], 10]
+            ], 0.8, // Light grey for no data or less than 10 votes
+            ['interpolate', ['linear'], ['get','winner_pct'], 35, 0.35, 70, 0.85]
+          ]
+        }
+      });
+      map.addLayer({
+        id: 'precinct-borders',
+        type: 'line',
+        source: 'precincts',
+        paint: { 'line-color': '#fff', 'line-width': 0.2 }
+      });
+
+      // 5) totals in sidebar
+      const totals = {};
+      results.precincts.forEach(p => {
+        for (const [cand,v] of Object.entries(p.results)) {
+          if (cand.startsWith('total')) continue;
+          totals[cand] = (totals[cand]||0) + (v||0);
+        }
+      });
+      const sum = Object.values(totals).reduce((a,b)=>a+b,0);
+      const candidatesHtml = Object.entries(totals)
+        .sort((a,b)=>b[1]-a[1])
+        .slice(0, 3) // Show top 3 candidates
+        .map(([cand,v]) => {
+          const name = cand.split('-')[0];
+          const displayName = name === 'mamdani' ? 'Zohran Mamdani' :
+                             name === 'cuomo' ? 'Andrew M. Cuomo' :
+                             name === 'lander' ? 'Brad Lander' :
+                             name.charAt(0).toUpperCase() + name.slice(1);
+          const pct = (v/sum*100).toFixed(1);
+          const photoClass = name === 'mamdani' ? 'mamdani' :
+                            name === 'cuomo' ? 'cuomo' :
+                            name === 'lander' ? 'lander' : '';
+          return `
+            <div class="candidate-row">
+              <div class="candidate-photo ${photoClass}"></div>
+              <div class="candidate-info">
+                <div class="candidate-name">${displayName}</div>
+                <div class="candidate-stats">
+                  <span class="candidate-votes">${v.toLocaleString()}</span>
+                  <span class="candidate-pct">${pct}%</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      document.getElementById('candidates-list').innerHTML = candidatesHtml;
+
+      // 6) hover popup (styled)
+      const popup = new mapboxgl.Popup({ closeButton:false, closeOnClick:false });
+      map.on('mousemove','precinct-fills', e => {
+        const f = e.features[0];
+        const p = f.properties;
+        const gid = p.geo_id || '';
+        const electDist = gid.split('-')[1] || '';
+        
+        // Get the election results for this precinct
+        const row = byGeo.get(gid);
+        let candidateRows = '';
+        if (row && row.results) {
+          const results = Object.entries(row.results)
+            .filter(([key]) => !key.startsWith('total'))
+            .map(([key, votes]) => {
+              const name = key.split('-')[0];
+              const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+              const pct = p.votes_total ? ((votes / p.votes_total) * 100).toFixed(0) : 0;
+              return { name: displayName, votes, pct };
+            })
+            .sort((a, b) => b.votes - a.votes)
+            .slice(0, 3); // Only show top 3 candidates
+          
+          candidateRows = results.map(({ name, votes, pct }) => 
+            `<tr><td style="padding: 2px 8px; text-align: left;">${name}</td>
+                 <td style="padding: 2px 8px; text-align: right;">${votes}</td>
+                 <td style="padding: 2px 8px; text-align: right;">${pct}%</td></tr>`
+          ).join('');
+        }
+        
+        popup.setLngLat(e.lngLat).setHTML(
+          `<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 17px; min-width: 200px;">
+             <div style="padding: 6px 0px 8px 0px; font-weight: bold; font-size: 16px; color: #333;">
+               ELECTION DISTRICT ${electDist}
+             </div>
+             <table style="width: 100%; border-collapse: collapse;">
+               <thead>
+                 <tr style="border-bottom: 1px solid #ddd;">
+                   <th style="padding: 4px 8px; text-align: left; font-size: 14px; color: #666;">CANDIDATES</th>
+                   <th style="padding: 4px 8px; text-align: right; font-size: 14px; color: #666;">VOTES</th>
+                   <th style="padding: 4px 8px; text-align: right; font-size: 14px; color: #666;">PCT.</th>
+                 </tr>
+               </thead>
+               <tbody>
+                 ${candidateRows}
+               </tbody>
+             </table>
+           </div>`
+        ).addTo(map);
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave','precinct-fills', () => { popup.remove(); map.getCanvas().style.cursor=''; });
+
+        // Quick sanity check logs
+        console.log('Shapes:', shapes.features.length, 'Results rows:', results.precincts.length);
+        console.log('Matched precincts:', matchedCount, 'Unmatched:', unmatchedCount);
+        console.log('Example feature props:', shapes.features[0]?.properties);
+        console.log('Example result geo_id:', results.precincts[0]?.geo_id);
+        console.log('Features with winner_key:', shapes.features.filter(f => f.properties.winner_key).length);
+        console.log('Map layers added successfully');
+      } catch (error) {
+        console.error('Error loading map data:', error);
+        alert('Error loading map data. Check console for details.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "nyc-mayoral-primary-map",
+  "version": "1.0.0",
+  "description": "Interactive map showing NYC Mayoral Primary election results by precinct",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx serve .",
+    "dev": "npx live-server ."
+  },
+  "keywords": [
+    "nyc",
+    "election",
+    "map",
+    "mapbox",
+    "visualization",
+    "politics"
+  ],
+  "author": "Chi Vo",
+  "license": "MIT",
+  "devDependencies": {
+    "live-server": "^1.2.2",
+    "serve": "^14.2.1"
+  }
+}
