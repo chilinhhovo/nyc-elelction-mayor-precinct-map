@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>From Interactive to Static: NYC Election Map Adaptations</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 60px 40px;
+            background: #f8f9fa;
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 60px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .full-desktop {
+            margin-bottom: 80px;
+            text-align: center;
+        }
+        
+        .full-desktop img {
+            width: 100%;
+            max-width: 1200px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 80px 0 40px 0;
+            color: #333;
+            text-align: center;
+        }
+        
+        .intro {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 40px;
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007cbf;
+        }
+        
+        .formats-grid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 60px;
+            flex-wrap: wrap;
+        }
+        
+        /* Desktop mockup */
+        .desktop-mockup {
+            position: relative;
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 20px 20px 60px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            transform: perspective(1000px) rotateY(-5deg) rotateX(2deg);
+        }
+        
+        .desktop-mockup::after {
+            content: '';
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+        }
+        
+        .desktop-mockup img {
+            width: 500px;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        
+        /* Tablet mockup */
+        .tablet-mockup {
+            position: relative;
+            background: #2c2c2c;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            transform: perspective(800px) rotateY(8deg) rotateX(-3deg);
+        }
+        
+        .tablet-mockup::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 4px;
+            background: #555;
+            border-radius: 2px;
+        }
+        
+        .tablet-mockup img {
+            width: 320px;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+        }
+        
+        /* Mobile mockup */
+        .mobile-mockup {
+            position: relative;
+            background: #000;
+            border-radius: 25px;
+            padding: 20px 15px 30px 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            transform: perspective(600px) rotateY(-8deg) rotateX(5deg);
+        }
+        
+        .mobile-mockup::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+        }
+        
+        .mobile-mockup::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: #333;
+            border-radius: 2px;
+        }
+        
+        .mobile-mockup img {
+            width: 200px;
+            height: auto;
+            border-radius: 15px;
+            display: block;
+        }
+        
+        .format-info {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .format-info h3 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .format-info .specs {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .format-info p {
+            margin: 0;
+            color: #555;
+            font-size: 16px;
+        }
+        
+        .process-section {
+            margin-top: 50px;
+        }
+        
+        .process-section h2 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            color: #000;
+        }
+        
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #007cbf;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .step h4 {
+            margin: 0 0 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .step p {
+            margin: 0;
+            color: #555;
+            font-size: 15px;
+        }
+        
+        .benefits {
+            background: #e8f5e8;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .benefits h3 {
+            margin: 0 0 15px 0;
+            font-size: 22px;
+            color: #155724;
+        }
+        
+        .benefits ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #155724;
+        }
+        
+        .benefits li {
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .footer a {
+            color: #007cbf;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #0056b3;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 12px;
+            }
+            
+            .formats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-steps {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Interactive to Static Formats</h1>
+        
+        <div class="full-desktop">
+            <img src="images/desktop.jpg" alt="Full desktop version of NYC election map">
+        </div>
+        
+        <h1>Multi-Device Adaptations</h1>
+        
+        <div class="formats-grid">
+            <div class="format-card">
+                <div class="desktop-mockup">
+                    <img src="images/desktop.jpg" alt="Desktop format">
+                </div>
+                <div class="format-info">
+                    <h3>Desktop</h3>
+                    <div class="specs">Landscape • Web</div>
+                </div>
+            </div>
+            
+            <div class="format-card">
+                <div class="tablet-mockup">
+                    <img src="images/tablet.jpg" alt="Tablet format">
+                </div>
+                <div class="format-info">
+                    <h3>Tablet</h3>
+                    <div class="specs">Portrait • Social</div>
+                </div>
+            </div>
+            
+            <div class="format-card">
+                <div class="mobile-mockup">
+                    <img src="images/mobile.jpg" alt="Mobile format">
+                </div>
+                <div class="format-info">
+                    <h3>Mobile</h3>
+                    <div class="specs">Portrait • Stories</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Static adaptations created from the interactive NYC Mayoral Primary Election Map<br>
+            Original interactive map: <a href="index.html">NYC Election Results Map</a></p>
+        </div>
+    </div>
+</body>
+</html>
+
