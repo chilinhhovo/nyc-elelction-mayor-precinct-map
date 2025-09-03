@@ -284,13 +284,183 @@
       color: #333;
     }
     
+    /* Mobile search bar */
+    .mobile-search {
+      display: none;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .mobile-search input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    
+    /* Mobile bottom panel */
+    .mobile-bottom-panel {
+      display: none;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px 12px 0 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: transform 0.3s ease-in-out;
+    }
+    
+    .mobile-bottom-panel.collapsed {
+      transform: translateY(calc(100% - 80px));
+    }
+    
+    .mobile-panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .mobile-panel-header h2 {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 0;
+      color: #333;
+    }
+    
+    .mobile-panel-toggle {
+      font-size: 20px;
+      color: #666;
+      transition: transform 0.3s ease;
+    }
+    
+    .mobile-bottom-panel.collapsed .mobile-panel-toggle {
+      transform: rotate(180deg);
+    }
+    
+    .mobile-panel-content {
+      padding: 20px;
+      max-height: 50vh;
+      overflow-y: auto;
+    }
+    
+    .mobile-bottom-panel h1 {
+      font-size: 24px;
+      margin: 0 0 8px 0;
+      line-height: 1.2;
+    }
+    
+    .mobile-bottom-panel .byline {
+      font-size: 16px;
+      margin: 0 0 4px 0;
+    }
+    
+    .mobile-bottom-panel .updated {
+      font-size: 14px;
+      margin: 0 0 12px 0;
+    }
+    
+    .mobile-bottom-panel .description {
+      font-size: 16px;
+      margin: 0 0 16px 0;
+    }
+    
+    .mobile-bottom-panel .candidates-section h3 {
+      font-size: 18px;
+      margin: 0 0 12px 0;
+    }
+    
+    .mobile-bottom-panel .candidate-row {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+    
+    .mobile-bottom-panel .candidate-votes {
+      font-size: 15px;
+    }
+    
+    .mobile-bottom-panel .candidate-pct {
+      font-size: 16px;
+    }
+    
+    .mobile-bottom-panel .source {
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    
+    /* Mobile legend */
+    .mobile-legend {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      z-index: 500;
+      font-size: 14px;
+      display: none;
+    }
+    
+    .mobile-legend h4 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+    
+    .mobile-legend .legend-item {
+      margin-bottom: 3px;
+    }
+    
+    .mobile-legend .legend-color {
+      width: 12px;
+      height: 12px;
+      margin-right: 6px;
+    }
+    
+    .mobile-legend .legend-label {
+      font-size: 14px;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .info-panel {
-        width: calc(100vw - 40px);
-        max-width: 420px;
-        top: 10px;
-        left: 20px;
+        display: none;
+      }
+      
+      .legend {
+        display: none;
+      }
+      
+      .mobile-search {
+        display: block;
+      }
+      
+      .mobile-bottom-panel {
+        display: block;
+      }
+      
+      .mobile-legend {
+        display: block;
+      }
+      
+      #map {
+        height: 100vh;
       }
     }
   </style>
@@ -300,6 +470,78 @@
   <div class="main-content">
     <!-- Full Screen Map -->
     <div id="map"></div>
+    
+    <!-- Mobile Search Bar -->
+    <div class="mobile-search">
+      <input type="text" placeholder="Search by address, neighborhood or ZIP code" id="mobile-geocoder">
+    </div>
+    
+    <!-- Mobile Bottom Panel -->
+    <div class="mobile-bottom-panel collapsed" id="mobile-panel">
+      <div class="mobile-panel-header" onclick="toggleMobilePanel()">
+        <h2>NYC Mayoral Primary Results</h2>
+        <span class="mobile-panel-toggle">▼</span>
+      </div>
+      
+      <div class="mobile-panel-content">
+        <h1>How Every Block Voted in the N.Y.C. Mayoral Primary</h1>
+        <p class="byline">By Chi Vo</p>
+        <p class="updated">Updated July 7, 2025</p>
+        
+        <p class="description">Certified first-round results of the Democratic primary's ranked-choice vote are shown on this map. Mr. Mamdani was named the winner following the release of the final round tallies on July 1.</p>
+        
+        <div class="candidates-section">
+          <h3>Top candidates</h3>
+          <div id="mobile-candidates-list"></div>
+        </div>
+        
+        <p class="source">Sources: N.Y.C. Board of Elections; U.S. Census; Dept. of City Planning; Associated Press via the New York Time</p>
+        
+        <p style="margin-top: 16px; font-size: 14px; color: #666;">
+          <a href="static.html" style="color: #007cbf; text-decoration: none;">View static formats →</a>
+        </p>
+      </div>
+    </div>
+    
+    <!-- Mobile Legend -->
+    <div class="mobile-legend">
+      <h4>Leader Margin</h4>
+      <!-- Mamdani gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#f4a582; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#d95f02; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#b2441b; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Mamdani</div>
+      </div>
+      <!-- Cuomo gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#a6dba0; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#1b9e77; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#166b5a; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Cuomo</div>
+      </div>
+      <!-- Lander gradient -->
+      <div class="legend-item">
+        <div style="display: flex; margin-right: 8px;">
+          <div class="legend-color" style="background:#c2a5cf; border-radius: 2px 0 0 2px;"></div>
+          <div class="legend-color" style="background:#7570b3; border-radius: 0;"></div>
+          <div class="legend-color" style="background:#54508a; border-radius: 0 2px 2px 0;"></div>
+        </div>
+        <div class="legend-label">Lander</div>
+      </div>
+      <!-- Insufficient data -->
+      <div class="legend-item">
+        <div class="legend-color" style="background:#cccccc"></div>
+        <div class="legend-label">Insufficient data</div>
+      </div>
+      <div style="font-size: 11px; color: #666; margin-top: 4px;">
+        Light = narrow win, Dark = strong win
+      </div>
+    </div>
     
     <!-- Info Panel -->
     <div class="info-panel">
@@ -367,6 +609,12 @@
   </div>
 
   <script>
+    // Mobile panel toggle function
+    function toggleMobilePanel() {
+      const panel = document.getElementById('mobile-panel');
+      panel.classList.toggle('collapsed');
+    }
+    
     mapboxgl.accessToken = window.MAP_CONFIG.MAPBOX_ACCESS_TOKEN;
     const map = new mapboxgl.Map({
       container: 'map',
@@ -647,6 +895,12 @@
         candidatesListElement.innerHTML = candidatesHtml;
       } else {
         console.error('Could not find candidates-list element');
+      }
+      
+      // Also populate mobile candidates list
+      const mobileCandidatesListElement = document.getElementById('mobile-candidates-list');
+      if (mobileCandidatesListElement) {
+        mobileCandidatesListElement.innerHTML = candidatesHtml;
       }
 
       // 6) hover popup (styled)
