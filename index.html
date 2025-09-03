@@ -36,21 +36,21 @@
     /* Info panel */
     .info-panel {
       position: absolute;
-      top: 40px;
+      top: 20px;
       left: 40px;
-      width: 450px;
+      width: 420px;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(10px);
-      padding: 20px;
+      padding: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       border-radius: 8px;
       z-index: 500;
-      max-height: calc(100vh - 120px);
+      max-height: calc(100vh - 80px);
       overflow-y: auto;
     }
     
     .info-panel h1 {
-      font-size: 40px;
+      font-size: 27px;
       font-weight: bold;
       line-height: 1.2;
       margin: 0 0 8px 0;
@@ -59,20 +59,20 @@
     
     .byline {
       color: #666;
-      font-size: 20px;
+      font-size: 18px;
       margin: 0 0 4px 0;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     
     .updated {
       color: #666;
-      font-size: 17px;
+      font-size: 15px;
       margin: 0 0 16px 0;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     
     .description {
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.4;
       color: #333;
       margin: 0 0 16px 0;
@@ -89,7 +89,7 @@
       padding: 8px 12px;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 20px;
+      font-size: 18px;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
     
@@ -105,7 +105,7 @@
     }
     
     .mapboxgl-ctrl-geocoder input {
-      font-size: 20px !important;
+      font-size: 18px !important;
       padding: 8px 40px 8px 12px !important;
       border: 1px solid #ccc !important;
       border-radius: 4px !important;
@@ -167,7 +167,7 @@
     }
     
     .candidates-section h3 {
-      font-size: 23px;
+      font-size: 21px;
       font-weight: bold;
       margin: 0 0 12px 0;
       color: #000;
@@ -177,7 +177,7 @@
       display: flex;
       align-items: center;
       margin-bottom: 8px;
-      font-size: 20px;
+      font-size: 18px;
     }
     
     .candidate-photo {
@@ -224,17 +224,17 @@
     
     .candidate-votes {
       color: #666;
-      font-size: 19px;
+      font-size: 17px;
     }
     
     .candidate-pct {
       font-weight: bold;
       color: #000;
-      font-size: 20px;
+      font-size: 18px;
     }
     
     .source {
-      font-size: 16px;
+      font-size: 14px;
       color: #666;
       margin-top: 16px;
       line-height: 1.3;
@@ -254,11 +254,7 @@
       position: absolute;
       bottom: 20px;
       left: 40px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
       padding: 12px 16px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       font-size: 17px;
       z-index: 500;
     }
@@ -292,7 +288,9 @@
     @media (max-width: 768px) {
       .info-panel {
         width: calc(100vw - 40px);
-        max-width: 450px;
+        max-width: 420px;
+        top: 10px;
+        left: 20px;
       }
     }
   </style>
@@ -369,8 +367,8 @@
     const map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [-73.94, 40.74],
-      zoom: 12
+      center: [-74.02, 40.72],
+      zoom: 10.5
     });
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     
@@ -603,7 +601,12 @@
           totals[cand] = (totals[cand]||0) + (v||0);
         }
       });
+      
+      console.log('Candidate totals:', totals);
+      
       const sum = Object.values(totals).reduce((a,b)=>a+b,0);
+      console.log('Total votes:', sum);
+      
       const candidatesHtml = Object.entries(totals)
         .sort((a,b)=>b[1]-a[1])
         .slice(0, 3) // Show top 3 candidates
@@ -617,6 +620,7 @@
           const photoClass = name === 'mamdani' ? 'mamdani' :
                             name === 'cuomo' ? 'cuomo' :
                             name === 'lander' ? 'lander' : '';
+          console.log('Processing candidate:', cand, 'votes:', v, 'displayName:', displayName);
           return `
             <div class="candidate-row">
               <div class="candidate-photo ${photoClass}"></div>
@@ -630,7 +634,16 @@
             </div>
           `;
         }).join('');
-      document.getElementById('candidates-list').innerHTML = candidatesHtml;
+      
+      console.log('Generated HTML:', candidatesHtml);
+      const candidatesListElement = document.getElementById('candidates-list');
+      console.log('Candidates list element:', candidatesListElement);
+      
+      if (candidatesListElement) {
+        candidatesListElement.innerHTML = candidatesHtml;
+      } else {
+        console.error('Could not find candidates-list element');
+      }
 
       // 6) hover popup (styled)
       const popup = new mapboxgl.Popup({ closeButton:false, closeOnClick:false });
